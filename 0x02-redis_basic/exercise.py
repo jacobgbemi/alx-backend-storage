@@ -20,6 +20,30 @@ def count_calls(method: Callable) -> Callable:
     return wrapper
 
 
+def call_history(method: Callable) -> Callable:
+    """Tracks the call details of a method in a Cache class.
+    """
+    def wrapper(self, *args, **kwargs) -> Any:
+        """Returns the method's output after storing its inputs and output.
+        """
+        # get the function qualified name
+        fname = method.__qualname__
+        # create input and output list keys
+        input_key = fname + ':inputs'
+        output_key = fname + ':outputs'
+        # connect to redis
+        r = redis.StrictRedis()
+        # store input arguments with rpush
+        r.rpush(input_key, *[str(arg) for arg in args])
+        # execute the wrapped function
+        output = method(*args, **kwargs)
+        # store the output with rpush
+        r.rpush(output_key, str(output))
+        # return the output
+        return output
+    return wrapper
+
+
 class Cache:
     '''Represents an object for storing data in a Redis data storage.
     '''
