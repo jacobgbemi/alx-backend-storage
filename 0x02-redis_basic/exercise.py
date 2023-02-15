@@ -31,14 +31,14 @@ def call_history(method: Callable) -> Callable:
         # create input and output list keys
         input_key = fname + ':inputs'
         output_key = fname + ':outputs'
-        # connect to redis
-        r = redis.StrictRedis()
         # store input arguments with rpush
-        r.rpush(input_key, *[str(arg) for arg in args])
+        if isinstance(self._redis, redis.Redis):
+            self._redis.rpush(input_key, str(args))
         # execute the wrapped function
-        output = method(*args, **kwargs)
+        output = method(self, *args, **kwargs)
         # store the output with rpush
-        r.rpush(output_key, str(output))
+        if isinstance(self._redis, redis.Redis):
+            self._redis.rpush(output_key, output)
         # return the output
         return output
     return wrapper
