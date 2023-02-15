@@ -21,25 +21,19 @@ def count_calls(method: Callable) -> Callable:
 
 
 def call_history(method: Callable) -> Callable:
-    """Tracks the call details of a method in a Cache class.
-    """
+    '''Tracks the call details of a method in a Cache class.
+    '''
+    @wraps(method)
     def wrapper(self, *args, **kwargs) -> Any:
-        """Returns the method's output after storing its inputs and output.
-        """
-        # get the function qualified name
-        fname = method.__qualname__
-        # create input and output list keys
-        input_key = '{}:inputs'.format(fname)
-        output_key = '{}:outputs'.format(fname)
-        # store input arguments with rpush
+        '''Returns the method's output after storing its inputs and output.
+        '''
+        in_key = '{}:inputs'.format(method.__qualname__)
+        out_key = '{}:outputs'.format(method.__qualname__)
         if isinstance(self._redis, redis.Redis):
-            self._redis.rpush(input_key, str(args))
-        # execute the wrapped function
+            self._redis.rpush(in_key, str(args))
         output = method(self, *args, **kwargs)
-        # store the output with rpush
         if isinstance(self._redis, redis.Redis):
-            self._redis.rpush(output_key, output)
-        # return the output
+            self._redis.rpush(out_key, output)
         return output
     return wrapper
 
@@ -53,6 +47,7 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb(True)
 
+    @call_history
     @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
         '''Stores a value in a Redis data storage and returns the key.
