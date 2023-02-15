@@ -28,10 +28,7 @@ class Cache:
         '''Retrieves a value from a Redis data storage.
         '''
         data = self._redis.get(key)
-        if data is None:
-            return None
-        else:
-            return fn(data)
+        return fn(data) if fn is not None else data
 
     def get_str(self, key: str) -> str:
         '''Retrieves a string value from a Redis data storage.
