@@ -29,8 +29,8 @@ def call_history(method: Callable) -> Callable:
         # get the function qualified name
         fname = method.__qualname__
         # create input and output list keys
-        input_key = fname + ':inputs'
-        output_key = fname + ':outputs'
+        input_key = '{}:inputs'.format(fname)
+        output_key = '{}:outputs'.format(fname)
         # store input arguments with rpush
         if isinstance(self._redis, redis.Redis):
             self._redis.rpush(input_key, str(args))
